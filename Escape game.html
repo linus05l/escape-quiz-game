@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPERATION: SCHWARZLICHT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  --black:   #06080f;
+  --dark:    #0d1220;
+  --room-bg: #101828;
+  --wall:    #151e2e;
+  --floor:   #0f1520;
+  --desk:    #1a1410;
+  --wood:    #2a1f12;
+  --panel:   #0d1120;
+  --border:  #1e2a3a;
+  --border2: #2a3a50;
+  --red:     #c42020;
+  --red2:    #e53030;
+  --green:   #00e676;
+  --green2:  #00c853;
+  --gold:    #f5c842;
+  --amber:   #e8a020;
+  --text:    #bfc8d8;
+  --dim:     #4a5568;
+  --dim2:    #647080;
+  --mono:    'Share Tech Mono','Courier New',monospace;
+  --title:   'Orbitron',sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; background:var(--black); color:var(--text); font-family:var(--mono); overflow:hidden; }
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--dark); }
+::-webkit-scrollbar-thumb { background:var(--red); }
+
+/* Scanline overlay */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0px,rgba(0,0,0,.025) 1px,transparent 1px,transparent 3px);
+  pointer-events:none; z-index:999;
+}
+
+/* ================ SCREENS ================ */
+.screen { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; transition:opacity .7s ease; }
+.screen.off { opacity:0; pointer-events:none; }
+
+/* ================ WELCOME ================ */
+#s-welcome {
+  flex-direction:column;
+  background:radial-gradient(ellipse 90% 70% at 50% 40%, #111c30 0%, var(--black) 100%);
+}
+.logo-bar { font-size:9px; letter-spacing:6px; color:var(--red); margin-bottom:10px; animation:blink 4s infinite; }
+.logo-main { font-family:var(--title); font-size:clamp(30px,7vw,72px); font-weight:900; letter-spacing:4px; color:#fff; text-shadow:0 0 60px rgba(196,32,32,.25); line-height:1; }
+.logo-sub  { font-family:var(--title); font-size:clamp(9px,1.6vw,13px); letter-spacing:7px; color:var(--red); margin:8px 0 32px; }
+.divider   { width:280px; height:1px; background:linear-gradient(90deg,transparent,var(--red),transparent); margin:12px auto; }
+
+.welcome-card {
+  background:rgba(13,17,32,.9);
+  border:1px solid var(--border);
+  border-top:2px solid var(--red);
+  padding:28px 34px;
+  width:min(460px,93vw);
+  text-align:center;
+  position:relative;
+}
+.welcome-card::before {
+  content:'IDENTIFIKATION ERFORDERLICH';
+  position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+  background:var(--dark); padding:0 10px;
+  font-size:8px; letter-spacing:3px; color:var(--red); white-space:nowrap;
+}
+.wlabel { font-size:9px; letter-spacing:3px; color:var(--dim2); margin-bottom:12px; }
+.name-input {
+  width:100%; background:rgba(0,0,0,.5);
+  border:1px solid var(--border); border-bottom:2px solid var(--red);
+  color:var(--green); font-family:var(--mono); font-size:18px;
+  padding:10px 14px; text-align:center; letter-spacing:3px;
+  outline:none; text-transform:uppercase; transition:border-color .2s;
+}
+.name-input:focus { box-shadow:0 0 18px rgba(196,32,32,.15); }
+.name-input::placeholder { color:var(--dim); font-size:12px; letter-spacing:2px; }
+.start-btn {
+  margin-top:18px; width:100%; background:transparent;
+  border:1px solid var(--red); color:var(--red);
+  font-family:var(--title); font-size:11px; letter-spacing:5px;
+  padding:13px; cursor:pointer; text-transform:uppercase; transition:all .25s;
+}
+.start-btn:hover { background:var(--red); color:#fff; box-shadow:0 0 28px rgba(196,32,32,.4); }
+.w-note { margin-top:18px; font-size:9px; color:var(--dim2); letter-spacing:2px; line-height:2; }
+
+/* ================ BRIEFING ================ */
+#s-briefing { flex-direction:column; background:var(--black); padding:20px; overflow-y:auto; }
+.brief-outer { width:min(680px,100%); }
+.brief-header {
+  background:var(--red); padding:12px 20px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.brief-header-l { font-family:var(--title); font-size:11px; letter-spacing:3px; color:#fff; }
+.brief-header-r { font-size:9px; letter-spacing:2px; color:rgba(255,255,255,.55); }
+.brief-body {
+  background:rgba(13,17,32,.95);
+  border:1px solid var(--border); border-top:none;
+  padding:24px 28px;
+}
+.brief-meta { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:20px; font-size:10px; color:var(--dim2); letter-spacing:1px; }
+.brief-meta span { color:var(--text); }
+.brief-text { font-size:13px; line-height:2.1; color:var(--text); white-space:pre-wrap; min-height:220px; }
+.brief-footer { margin-top:22px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; }
+.action-btn {
+  background:transparent; border:1px solid var(--green2); color:var(--green);
+  font-family:var(--mono); font-size:11px; letter-spacing:4px;
+  padding:11px 28px; cursor:pointer; text-transform:uppercase; transition:all .2s; display:none;
+}
+.action-btn:hover { background:var(--green2); color:#000; box-shadow:0 0 18px rgba(0,200,100,.3); }
+
+/* ================ ROOM ================ */
+#s-room { display:block; position:fixed; inset:0; overflow:hidden; }
+#room-scene { position:absolute; inset:0; }
+
+/* ======== BRIGHT ROOM DESIGN ======== */
+/* Background: realistic office room with warm overhead lighting */
+.r-bg {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, #2a3448 0%, #1e2a3e 50%, #18202e 100%);
+}
+
+/* Ceiling with bright overhead lighting effect */
+.r-ceiling-light {
+  position:absolute; top:0; left:20%; right:20%; height:3px;
+  background:rgba(220,230,255,.6);
+  box-shadow:0 0 120px 80px rgba(180,200,255,.18), 0 0 300px 150px rgba(150,180,255,.09);
+}
+
+/* Secondary ceiling lamp */
+.r-ceiling-light2 {
+  position:absolute; top:0; left:55%; right:15%; height:2px;
+  background:rgba(255,220,150,.4);
+  box-shadow:0 0 80px 60px rgba(255,200,100,.1);
+}
+
+/* Wall paneling — clearly visible warm blue-grey */
+.r-wall-panel {
+  position:absolute; top:0; left:0; right:0; height:62%;
+  background:linear-gradient(180deg, #2e3d55 0%, #253348 60%, #1e2b3c 100%);
+  border-bottom:3px solid #3a4d65;
+}
+.r-wall-stripe {
+  position:absolute; top:0; left:0; right:0; height:62%;
+  background:repeating-linear-gradient(90deg,transparent,transparent 120px,rgba(0,0,0,.08) 120px,rgba(0,0,0,.08) 121px);
+}
+
+/* Wall baseboard */
+.r-wall-baseboard {
+  position:absolute; bottom:38%; left:0; right:0; height:6px;
+  background:linear-gradient(180deg, #3a4d65 0%, #2a3a50 100%);
+}
+
+/* Floor — warm dark parquet */
+.r-floor {
+  position:absolute; bottom:0; left:0; right:0; height:38%;
+  background:linear-gradient(180deg, #1e160a 0%, #160f06 100%);
+  border-top:2px solid #2a1e10;
+}
+.r-floor-tile {
+  position:absolute; bottom:0; left:0; right:0; height:38%;
+  background:repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(255,255,255,.025) 79px,rgba(255,255,255,.025) 80px);
+}
+
+/* Overhead light cone onto floor */
+.r-floor-light {
+  position:absolute; bottom:0; left:10%; right:10%; height:38%;
+  background:radial-gradient(ellipse at 50% 0%, rgba(180,200,255,.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+/* Desk — properly visible */
+.r-desk-top {
+  position:absolute; bottom:37%; left:3%; width:44%;
+  height:22px;
+  background:linear-gradient(180deg, #4a3520 0%, #3a2816 100%);
+  border-top:2px solid #6a5030;
+  border-left:1px solid #5a4025;
+  border-right:1px solid #2a1a08;
+  border-radius:2px 2px 0 0;
+  box-shadow:0 4px 24px rgba(0,0,0,.6), 0 -2px 8px rgba(255,180,80,.05);
+}
+.r-desk-body {
+  position:absolute; bottom:22%; left:4%; width:42%; height:15%;
+  background:linear-gradient(180deg, #3a2814 0%, #2a1e0c 100%);
+  border-left:2px solid #4a3520;
+  border-right:2px solid #2a1a08;
+}
+.r-desk-l { position:absolute; bottom:22%; left:4.5%;   width:16px; height:15%; background:#281808; border-radius:0 0 2px 2px; }
+.r-desk-r { position:absolute; bottom:22%; left:calc(4% + 42% - 20px); width:16px; height:15%; background:#281808; border-radius:0 0 2px 2px; }
+
+/* Items on desk */
+.r-desk-papers {
+  position:absolute; bottom:39%; left:5%; width:18%; height:10px;
+  background:rgba(220,210,180,.15); border:1px solid rgba(200,180,130,.2);
+  border-radius:1px;
+}
+.r-desk-papers2 {
+  position:absolute; bottom:40%; left:6%; width:14%; height:8px;
+  background:rgba(220,210,180,.1); border:1px solid rgba(200,180,130,.15);
+  border-radius:1px; transform:rotate(-3deg);
+}
+
+/* Desk lamp — more visible */
+.r-lamp-base { position:absolute; bottom:39%; left:19%; width:34px; height:8px; background:#2a2620; border-radius:3px; border-top:1px solid #3a3630; }
+.r-lamp-pole { position:absolute; bottom:42%; left:22%; width:5px; height:14%; background:#262420; border-left:1px solid #3a3630; }
+.r-lamp-arm  { position:absolute; bottom:55%; left:14%; width:10%; height:5px; background:#262420; border-radius:3px 0 0 3px; transform:rotate(-10deg); transform-origin:right center; border-top:1px solid #3a3630; }
+.r-lamp-head { position:absolute; bottom:57%; left:11%; width:8%; height:16px; background:#1e1c18; border-radius:8px 8px 3px 3px; border:1px solid #3a3630; }
+/* Lamp ON — bright warm glow */
+.r-lamp-glow {
+  position:absolute; bottom:30%; left:5%; width:22%; height:32%;
+  background:radial-gradient(ellipse at 50% 0%, rgba(255,220,120,.22) 0%, rgba(255,200,80,.1) 35%, rgba(255,180,60,.03) 65%, transparent 80%);
+  pointer-events:none;
+}
+.r-lamp-cone {
+  position:absolute; bottom:39%; left:12%; width:14%;
+  height:0; border-left:5% solid transparent; border-right:5% solid transparent;
+  border-top:22px solid rgba(255,210,100,.12);
+  pointer-events:none;
+}
+/* Desk lamp light circle on desk surface */
+.r-desk-light {
+  position:absolute; bottom:37%; left:8%; width:20%; height:12px;
+  background:radial-gradient(ellipse, rgba(255,220,120,.18) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+/* Bookshelf (right) — properly lit */
+.r-shelf {
+  position:absolute; top:4%; right:2%; width:13%; bottom:38%;
+  background:linear-gradient(180deg, #2a3448 0%, #222c40 100%);
+  border:1px solid #3a4d65;
+  border-bottom:3px solid #3a4d65;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.3), 2px 0 8px rgba(0,0,0,.4);
+}
+.r-shelf-bar { position:absolute; left:0; right:0; height:2px; background:#3a4d65; }
+.r-book { position:absolute; bottom:2px; height:65%; display:flex; gap:2px; align-items:flex-end; left:5px; right:5px; }
+.r-book-spine { border-radius:1px 1px 0 0; }
+
+/* Filing cabinet — visible with metallic look */
+.r-cabinet {
+  position:absolute; bottom:38%; left:50%; width:18%; height:28%;
+  background:linear-gradient(180deg, #2a3448 0%, #1e2838 100%);
+  border:1px solid #3a4d65; border-top:3px solid #4a6080;
+  box-shadow:2px 0 8px rgba(0,0,0,.4), inset -2px 0 6px rgba(0,0,0,.2);
+}
+.r-cabinet-line { position:absolute; left:0; right:0; height:2px; background:#3a4d65; }
+.r-cabinet-handle {
+  position:absolute; right:10px; width:10px; height:4px;
+  background:linear-gradient(90deg, #5a7090, #8aabb0, #5a7090);
+  border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+
+/* "AKTE" label on cabinet */
+.r-cabinet-label {
+  position:absolute; top:8%; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:6px; letter-spacing:2px;
+  color:rgba(180,210,255,.4); white-space:nowrap;
+}
+
+/* Pinboard / corkboard — warm brown, clearly visible */
+.r-pinboard {
+  position:absolute; top:5%; left:28%; width:18%; height:42%;
+  background:linear-gradient(180deg, #3a2810 0%, #2e2008 100%);
+  border:4px solid #4a3018; border-radius:3px;
+  box-shadow:2px 2px 12px rgba(0,0,0,.5), inset 0 0 20px rgba(0,0,0,.2);
+}
+.r-pin { position:absolute; top:-5px; width:10px; height:10px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.r-pinned-note { position:absolute; border-radius:1px; box-shadow:1px 1px 4px rgba(0,0,0,.4); }
+
+/* Wall lamp left — visible fixture */
+.r-wall-lamp {
+  position:absolute; top:15%; left:2%; width:3%; height:7%;
+  background:linear-gradient(180deg, #2a2820 0%, #1e1c16 100%);
+  border:1px solid #3a3830;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.r-wall-lamp-glow {
+  position:absolute; top:12%; left:0; width:16%; height:35%;
+  background:radial-gradient(ellipse at 0% 20%, rgba(255,220,100,.16), rgba(255,200,80,.06) 40%, transparent 70%);
+  pointer-events:none;
+}
+
+/* Window — visible with night sky */
+.r-window {
+  position:absolute; top:8%; left:6%; width:11%; height:24%;
+  background:linear-gradient(180deg, #0a1830 0%, #060e22 100%);
+  border:3px solid #3a4d65;
+  box-shadow:inset 0 0 20px rgba(80,120,200,.08), 0 0 20px rgba(80,120,200,.06);
+}
+.r-window-bar { position:absolute; left:0; right:0; height:2px; background:#3a4d65; }
+.r-window-bar-v { position:absolute; top:0; bottom:0; width:2px; left:50%; background:#3a4d65; }
+.r-window-glow {
+  position:absolute; top:6%; left:3%; width:16%; height:26%;
+  background:radial-gradient(ellipse at 50% 50%, rgba(80,120,200,.08), transparent 70%);
+  pointer-events:none;
+}
+/* Window sill */
+.r-windowsill {
+  position:absolute; top:31%; left:5%; width:13%; height:6px;
+  background:linear-gradient(180deg, #3a4d65 0%, #2a3a50 100%);
+}
+
+/* ======== NO FLASHLIGHT — ROOM FULLY LIT ======== */
+#flashlight {
+  position:absolute; inset:0;
+  pointer-events:none; z-index:15;
+  /* No dark overlay — room is fully visible */
+  background: transparent;
+}
+
+/* ================ HUD ================ */
+#hud {
+  position:absolute; top:0; left:0; right:0; z-index:20;
+  padding:10px 18px;
+  background:linear-gradient(180deg, rgba(6,8,15,.98) 70%, transparent 100%);
+  display:flex; align-items:center; justify-content:space-between; gap:6px;
+  border-bottom:1px solid rgba(30,42,58,.6);
+}
+.hud-left { display:flex; flex-direction:column; gap:2px; }
+.hud-op    { font-family:var(--title); font-size:8px; letter-spacing:4px; color:var(--red); }
+.hud-agent { font-size:9px; letter-spacing:2px; color:var(--dim2); }
+.hud-agent span { color:var(--green); }
+.hud-prog  { display:flex; gap:5px; align-items:center; }
+.pdot { width:28px; height:4px; border-radius:2px; background:var(--border); transition:all .5s; }
+.pdot.done   { background:var(--green2); box-shadow:0 0 6px var(--green2); }
+.pdot.active { background:var(--red); animation:pact 1.2s infinite; }
+@keyframes pact { 0%,100%{opacity:1}50%{opacity:.3} }
+.hud-right { text-align:right; }
+.hud-timer  { font-family:var(--title); font-size:clamp(22px,4vw,30px); letter-spacing:3px; color:var(--gold); font-weight:700; }
+.hud-timer.warn { color:var(--red); animation:blink .6s infinite; }
+.hud-tlabel { font-size:8px; letter-spacing:3px; color:var(--dim2); }
+
+/* ================ ROOM ITEMS ================ */
+.ritem {
+  position:absolute; z-index:16; text-align:center; width:72px;
+  cursor:pointer; transition:transform .2s; user-select:none;
+}
+.ritem.locked { cursor:not-allowed; }
+.r-icon-wrap {
+  width:54px; height:54px; margin:0 auto 5px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:24px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  transition:all .3s; position:relative;
+}
+.ritem.unlocked .r-icon-wrap {
+  border-color:rgba(0,230,118,.55);
+  box-shadow:0 0 18px rgba(0,230,118,.25);
+  background:rgba(0,230,118,.06);
+  animation:ipulse 2s infinite;
+}
+.ritem.unlocked:hover .r-icon-wrap {
+  transform:scale(1.12);
+  box-shadow:0 0 30px rgba(0,230,118,.4);
+}
+.ritem.locked .r-icon-wrap { filter:grayscale(1); opacity:.25; }
+.ritem.solved .r-icon-wrap {
+  border-color:rgba(0,200,100,.2);
+  background:rgba(0,200,100,.04);
+  opacity:.45;
+}
+.r-badge {
+  position:absolute; top:-3px; right:-3px;
+  width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:9px;
+  border:1px solid var(--border); background:var(--dark);
+}
+.r-badge.lock  { color:var(--dim2); }
+.r-badge.check { background:var(--green2); color:#000; border-color:var(--green2); }
+.r-label { font-size:8px; letter-spacing:2px; color:var(--dim2); text-transform:uppercase; }
+.ritem.unlocked .r-label { color:rgba(0,230,118,.7); }
+@keyframes ipulse { 0%,100%{box-shadow:0 0 10px rgba(0,230,118,.15)}50%{box-shadow:0 0 24px rgba(0,230,118,.35)} }
+
+.room-hint-bar {
+  position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  font-size:8px; letter-spacing:3px; color:rgba(100,150,200,.5); z-index:6; white-space:nowrap;
+}
+
+/* ================ NOTIFICATION ================ */
+#notif {
+  position:fixed; top:66px; left:50%;
+  transform:translateX(-50%) translateY(-10px);
+  background:rgba(6,8,15,.97); border:1px solid var(--green2);
+  color:var(--green); padding:9px 22px;
+  font-size:10px; letter-spacing:2px; z-index:200;
+  opacity:0; transition:all .4s; pointer-events:none; white-space:nowrap;
+}
+#notif.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ================ MODAL ================ */
+#modal-overlay {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(6,8,15,.93);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .3s; padding:14px;
+}
+#modal-overlay.open { opacity:1; pointer-events:all; }
+.mbox {
+  width:min(720px,100%); max-height:90vh; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--border);
+  border-top:2px solid var(--red);
+  display:flex; flex-direction:column;
+}
+.mbox-header {
+  background:rgba(196,32,32,.9); padding:13px 18px;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0; position:sticky; top:0; z-index:2;
+}
+.mbox-tag   { font-size:8px; letter-spacing:3px; color:rgba(255,255,255,.55); }
+.mbox-title { font-family:var(--title); font-size:12px; letter-spacing:2px; color:#fff; margin-top:2px; }
+.mclose {
+  background:transparent; border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.6); width:30px; height:30px;
+  cursor:pointer; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s; flex-shrink:0;
+}
+.mclose:hover { background:rgba(255,255,255,.1); color:#fff; }
+.mbox-body { padding:22px 24px; font-size:13px; line-height:1.8; flex:1; }
+
+/* ================ PUZZLE COMPONENTS ================ */
+.storybox {
+  background:rgba(0,0,0,.35);
+  border-left:2px solid var(--red);
+  padding:12px 16px; margin-bottom:16px;
+  font-size:12px; color:var(--dim2); line-height:1.9; font-style:italic;
+  border-radius:0 2px 2px 0;
+}
+.storybox strong { color:var(--text); font-style:normal; }
+.docbox {
+  background:rgba(0,0,0,.4); border:1px solid var(--border);
+  padding:16px 18px; margin:12px 0; position:relative;
+}
+.docbox-label {
+  position:absolute; top:-8px; left:10px;
+  background:var(--panel); padding:0 8px;
+  font-size:8px; letter-spacing:2px; color:var(--red);
+}
+.cipher-text {
+  font-size:clamp(16px,4vw,26px); letter-spacing:7px; color:var(--red);
+  text-align:center; padding:12px 0; font-weight:bold;
+}
+.ctip { font-size:9px; color:var(--dim2); text-align:center; letter-spacing:2px; margin-top:4px; }
+
+/* Alphabet table — two rows */
+.alpha-table {
+  width:100%; border-collapse:collapse; margin:10px 0;
+}
+.alpha-table td {
+  text-align:center; padding:6px 3px; font-size:13px;
+  border:1px solid var(--border); width:calc(100%/26);
+}
+.alpha-table .row-enc td { color:var(--red); background:rgba(196,32,32,.07); font-weight:bold; }
+.alpha-table .row-dec td { color:var(--green); background:rgba(0,200,100,.05); }
+.alpha-table .row-label td { color:var(--dim2); font-size:8px; letter-spacing:1px; border:none; background:transparent; padding:3px 0; }
+
+/* Tip button system */
+.tip-section { margin-top:14px; }
+.tip-btn-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.tip-btn {
+  background:transparent; border:1px solid var(--border); color:var(--dim2);
+  font-family:var(--mono); font-size:9px; letter-spacing:2px;
+  padding:7px 14px; cursor:pointer; transition:all .2s; text-transform:uppercase;
+}
+.tip-btn:hover { border-color:var(--gold); color:var(--gold); }
+.tip-btn.easy  { border-color:rgba(0,200,100,.3); }
+.tip-btn.easy:hover  { border-color:var(--green2); color:var(--green2); background:rgba(0,200,100,.06); }
+.tip-btn.med   { border-color:rgba(245,200,66,.3); }
+.tip-btn.med:hover   { border-color:var(--gold); color:var(--gold); background:rgba(245,200,66,.06); }
+.tip-btn.hard  { border-color:rgba(196,32,32,.3); }
+.tip-btn.hard:hover  { border-color:var(--red); color:var(--red); background:rgba(196,32,32,.06); }
+.tip-box {
+  display:none; padding:10px 14px; font-size:11px; line-height:1.8;
+  border-left:2px solid var(--gold); background:rgba(245,200,66,.04);
+  color:var(--text); margin-top:6px;
+}
+.tip-box.show { display:block; animation:popin .2s ease; }
+.tip-box.easy-tip { border-color:var(--green2); background:rgba(0,200,100,.04); }
+.tip-box.med-tip  { border-color:var(--gold);   background:rgba(245,200,66,.04); }
+.tip-box.hard-tip { border-color:var(--red);    background:rgba(196,32,32,.04); }
+.tip-label { font-size:8px; letter-spacing:2px; margin-bottom:4px; }
+.tip-label.easy-tip { color:var(--green2); }
+.tip-label.med-tip  { color:var(--gold); }
+.tip-label.hard-tip { color:var(--red); }
+
+.eq-row {
+  display:flex; align-items:center; gap:12px; padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.eq-row:last-child { border:none; }
+.eq-lbl     { font-family:var(--title); color:var(--gold); min-width:24px; font-size:10px; }
+.eq-formula { flex:1; font-size:14px; letter-spacing:1px; }
+.eq-hint    { font-size:10px; color:var(--dim2); }
+.px-input {
+  background:rgba(0,0,0,.5); border:1px solid var(--border);
+  border-bottom:2px solid var(--dim); color:var(--green);
+  font-family:var(--mono); font-size:15px; padding:8px 12px;
+  outline:none; transition:all .2s; width:100%; margin-top:8px; letter-spacing:2px;
+}
+.px-input:focus { border-bottom-color:var(--green2); }
+.px-input.ok  { border-bottom-color:var(--green); color:var(--green); }
+.px-input.err { border-bottom-color:var(--red); color:var(--red); animation:shake .3s; }
+.px-input.sm  { width:62px; text-align:center; padding:7px 6px; margin-top:0; }
+.irow { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+.ilb  { font-size:10px; color:var(--dim2); min-width:22px; }
+.px-btn {
+  background:transparent; border:1px solid var(--red); color:var(--red);
+  font-family:var(--mono); font-size:10px; letter-spacing:3px;
+  padding:10px 20px; cursor:pointer; text-transform:uppercase;
+  transition:all .2s; margin-top:14px;
+}
+.px-btn:hover { background:var(--red); color:#fff; box-shadow:0 0 18px rgba(200,30,30,.3); }
+.feedback { margin-top:10px; font-size:11px; letter-spacing:1px; min-height:18px; }
+.feedback.ok  { color:var(--green); }
+.feedback.err { color:var(--red); }
+.plabel   { font-size:9px; color:var(--gold); letter-spacing:2px; margin:14px 0 4px; }
+.hint-tip { font-size:10px; color:var(--dim2); font-style:italic; margin-top:6px; }
+.res-box {
+  display:none; background:rgba(0,230,118,.025);
+  border:1px solid rgba(0,200,100,.18); padding:16px 20px; margin-top:16px; text-align:center;
+}
+.res-box.show { display:block; }
+.res-label { font-size:8px; letter-spacing:3px; color:var(--green2); margin-bottom:6px; }
+.res-code {
+  font-family:var(--title); font-size:clamp(18px,4vw,30px); letter-spacing:7px;
+  color:var(--green); font-weight:700; margin:6px 0;
+  text-shadow:0 0 14px rgba(0,230,118,.2);
+}
+.res-sub { font-size:9px; color:var(--dim2); letter-spacing:2px; margin-bottom:10px; }
+.next-btn {
+  background:var(--green2); border:none; color:#000;
+  font-family:var(--title); font-size:10px; letter-spacing:3px;
+  padding:12px 24px; cursor:pointer; width:100%; font-weight:700;
+  transition:all .2s; text-transform:uppercase;
+}
+.next-btn:hover { background:var(--green); box-shadow:0 0 18px rgba(0,230,118,.25); }
+.pct-grid { display:grid; grid-template-columns:1fr auto; gap:10px 14px; align-items:center; }
+.geo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0; }
+.geo-card { background:rgba(0,0,0,.35); border:1px solid var(--border); padding:13px 11px; }
+.geo-title { font-size:9px; letter-spacing:2px; margin-bottom:7px; font-weight:bold; }
+.geo-shape { font-size:10px; color:var(--gold); line-height:1.5; white-space:pre; margin:5px 0; font-family:var(--mono); }
+.geo-info  { font-size:10px; color:var(--dim2); margin-bottom:4px; }
+.geo-q     { font-size:11px; color:var(--text); margin-bottom:4px; }
+.stbl { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
+.stbl th { background:rgba(0,0,0,.45); color:var(--red); font-size:8px; letter-spacing:2px; padding:8px 10px; border:1px solid var(--border); text-align:left; }
+.stbl td { padding:8px 10px; border:1px solid rgba(255,255,255,.03); }
+.stbl tr:nth-child(even) td { background:rgba(0,0,0,.18); }
+.sinput {
+  background:transparent; border:none; border-bottom:1px solid var(--border);
+  color:var(--green); font-family:var(--mono); font-size:13px;
+  width:52px; text-align:center; outline:none; padding:2px 4px;
+}
+.suspect-btn {
+  background:transparent; border:1px solid var(--border); color:var(--dim2);
+  font-family:var(--mono); font-size:11px; letter-spacing:2px;
+  padding:9px 16px; cursor:pointer; margin:4px; transition:all .2s;
+}
+.suspect-btn:hover { border-color:var(--red); color:var(--red); }
+.suspect-btn.sel   { border-color:var(--red); color:var(--red); background:rgba(196,32,32,.08); }
+.safe-door {
+  width:110px; height:110px; border:3px solid var(--border); border-radius:8px;
+  background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center;
+  font-size:50px; margin:14px auto; box-shadow:inset 0 0 36px rgba(0,0,0,.7);
+}
+.safe-input { font-size:30px; letter-spacing:12px; text-align:center; }
+
+/* ================ VICTORY ================ */
+#s-victory {
+  flex-direction:column; text-align:center;
+  background:radial-gradient(ellipse at center, #0a1525, var(--black));
+  padding:24px; overflow-y:auto;
+}
+.v-tag   { font-size:9px; letter-spacing:4px; color:var(--green); margin-bottom:12px; }
+.v-title { font-family:var(--title); font-size:clamp(22px,5vw,46px); letter-spacing:5px; margin-bottom:6px; color:#fff; }
+.v-sub   { font-size:12px; color:var(--gold); letter-spacing:3px; margin-bottom:26px; }
+.v-card  {
+  border:1px solid rgba(0,200,100,.16); background:rgba(0,200,100,.018);
+  padding:24px 40px; margin:0 auto 18px; max-width:460px;
+}
+.v-name   { font-family:var(--title); font-size:clamp(22px,5vw,40px); letter-spacing:6px; color:var(--red); font-weight:900; margin:10px 0; }
+.v-alias  { font-size:10px; letter-spacing:3px; color:var(--gold); }
+.v-verdict{ font-size:10px; letter-spacing:2px; color:var(--green); margin-top:14px; }
+.v-agent  { font-size:11px; color:var(--dim2); margin-bottom:16px; line-height:2; max-width:500px; }
+.v-story  { font-size:12px; color:var(--text); margin-bottom:20px; max-width:520px; line-height:2; font-style:italic; }
+.replay-btn {
+  background:transparent; border:1px solid var(--green2); color:var(--green);
+  font-family:var(--title); font-size:11px; letter-spacing:4px;
+  padding:12px 30px; cursor:pointer; text-transform:uppercase; transition:all .2s;
+}
+.replay-btn:hover { background:var(--green2); color:#000; }
+
+/* ================ GAME OVER ================ */
+#s-gameover {
+  flex-direction:column; text-align:center;
+  background:radial-gradient(ellipse at center, #150405, var(--black));
+  padding:24px;
+}
+.go-title { font-family:var(--title); font-size:clamp(22px,5vw,48px); letter-spacing:5px; color:var(--red); margin-bottom:10px; }
+.go-card  { background:var(--panel); border:1px solid var(--border); padding:20px 30px; max-width:400px; margin:0 auto 22px; font-size:11px; color:var(--dim2); line-height:2.1; }
+
+/* ================ CONFETTI ================ */
+.conf { position:fixed; width:7px; height:13px; top:-20px; pointer-events:none; opacity:.85; animation:conffall linear forwards; }
+@keyframes conffall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
+
+/* ================ KEYFRAMES ================ */
+@keyframes blink { 0%,90%,100%{opacity:1}91%{opacity:.15}93%{opacity:1}96%{opacity:.4}98%{opacity:1} }
+@keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)} }
+@keyframes popin { 0%{transform:scale(.7);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1} }
+.popin { animation:popin .45s ease forwards; }
+
+/* Responsive */
+@media(max-width:580px) {
+  .geo-grid { grid-template-columns:1fr; }
+  .pct-grid { grid-template-columns:1fr; }
+  .welcome-card { padding:22px 16px; }
+  .v-card { padding:18px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========== SCREEN 1: WELCOME =========== -->
+<div class="screen" id="s-welcome">
+  <div style="position:absolute;top:16px;right:20px;text-align:right;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--dim2);line-height:1.9;z-index:10;">
+    Quiz by<br>
+    <span style="color:var(--text);font-size:15px;letter-spacing:3px;">Linus &amp; Elham</span>
+  </div>
+  <div style="text-align:center;padding:20px;width:100%">
+    <div class="logo-bar">⬛&nbsp;&nbsp;GEHEIMDIENSTZENTRALE BERLIN — GESICHERTES TERMINAL&nbsp;&nbsp;⬛</div>
+    <div class="divider"></div>
+    <div style="height:14px"></div>
+    <div class="logo-main">SCHWARZLICHT</div>
+    <div class="logo-sub">OPERATION: DAS GEHEIMNIS DES DOPPELAGENTEN</div>
+    <div style="height:8px"></div>
+    <div class="welcome-card">
+      <div class="wlabel">AGENTEN-DECKNAME EINGEBEN:</div>
+      <input class="name-input" id="agent-name" type="text" placeholder="Dein Deckname ..." maxlength="20"
+        onkeydown="if(event.key==='Enter')beginMission()">
+      <button class="start-btn" onclick="beginMission()">▶ MISSION STARTEN</button>
+      <div class="w-note">
+        5 Rätsel &nbsp;·&nbsp; 30 Minuten &nbsp;·&nbsp; Enttarne den Doppelagenten<br>
+        Mathematik &amp; Deutsch &nbsp;·&nbsp; Klicke auf leuchtende Objekte
+      </div>
+    </div>
+    <div style="margin-top:22px;font-size:9px;color:#181c26;letter-spacing:2px">
+      Ernst Litfaß Schule &nbsp;·&nbsp; Schulprojekt: Escape Game – Mathe trifft Sprache &nbsp;·&nbsp; GRA/TOL 2025/2026
+    </div>
+  </div>
+</div>
+
+<!-- =========== SCREEN 2: BRIEFING =========== -->
+<div class="screen off" id="s-briefing">
+  <div class="brief-outer">
+    <div class="brief-header">
+      <div class="brief-header-l">EINGEHENDE NACHRICHT — VERSCHLÜSSELT</div>
+      <div class="brief-header-r">23:47 UHR · 04.05.2026</div>
+    </div>
+    <div class="brief-body">
+      <div class="brief-meta">
+        <div>AN: <span id="brief-to">AGENT —</span></div>
+        <div>VON: <span>DIREKTORIN HARTMANN</span></div>
+        <div>KLASSIFIZIERUNG: <span style="color:var(--red)">STRENG GEHEIM</span></div>
+        <div>PRIORITÄT: <span style="color:var(--red)">ALPHA-1</span></div>
+      </div>
+      <div class="brief-text" id="brief-text"></div>
+      <div class="brief-footer">
+        <button class="action-btn" id="brief-btn" onclick="enterRoom()">▶ BÜRO BETRETEN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SCREEN 3: ROOM =========== -->
+<div class="screen off" id="s-room">
+  <div id="room-scene">
+    <!-- Room layers -->
+    <div class="r-bg"></div>
+    <div class="r-ceiling-light"></div>
+    <div class="r-ceiling-light2"></div>
+    <div class="r-wall-panel"></div>
+    <div class="r-wall-stripe"></div>
+    <div class="r-wall-baseboard"></div>
+    <div class="r-floor"></div>
+    <div class="r-floor-tile"></div>
+    <div class="r-floor-light"></div>
+
+    <!-- Window with cross bar -->
+    <div class="r-window">
+      <div class="r-window-bar" style="top:33%"></div>
+      <div class="r-window-bar" style="top:66%"></div>
+      <div class="r-window-bar-v"></div>
+    </div>
+    <div class="r-window-glow"></div>
+    <div class="r-windowsill"></div>
+
+    <!-- Wall lamp left -->
+    <div class="r-wall-lamp"></div>
+    <div class="r-wall-lamp-glow"></div>
+
+    <!-- Pinboard center -->
+    <div class="r-pinboard">
+      <div class="r-pin" style="left:10%;background:#8b2020"></div>
+      <div class="r-pin" style="right:10%;background:#8b2020"></div>
+      <div class="r-pinned-note" style="top:8%;left:8%;right:8%;height:22%;background:rgba(230,210,160,.10);border:1px solid rgba(200,180,120,.18)"></div>
+      <div class="r-pinned-note" style="top:36%;left:8%;width:38%;height:18%;background:rgba(230,210,160,.08);border:1px solid rgba(200,180,120,.14)"></div>
+      <div class="r-pinned-note" style="top:36%;right:8%;width:38%;height:30%;background:rgba(230,210,160,.08);border:1px solid rgba(200,180,120,.14)"></div>
+      <div class="r-pinned-note" style="top:62%;left:8%;right:8%;height:28%;background:rgba(230,210,160,.08);border:1px solid rgba(200,180,120,.14)"></div>
+    </div>
+
+    <!-- Desk -->
+    <div class="r-desk-top"></div>
+    <div class="r-desk-body"></div>
+    <div class="r-desk-l"></div>
+    <div class="r-desk-r"></div>
+    <div class="r-desk-papers"></div>
+    <div class="r-desk-papers2"></div>
+    <div class="r-desk-light"></div>
+
+    <!-- Desk lamp -->
+    <div class="r-lamp-base"></div>
+    <div class="r-lamp-pole"></div>
+    <div class="r-lamp-arm"></div>
+    <div class="r-lamp-head"></div>
+    <div class="r-lamp-glow"></div>
+    <div class="r-lamp-cone"></div>
+
+    <!-- Shelf -->
+    <div class="r-shelf">
+      <div class="r-shelf-bar" style="top:33%"></div>
+      <div class="r-shelf-bar" style="top:66%"></div>
+      <div class="r-book">
+        <div class="r-book-spine" style="width:8px;height:72%;background:#2a3a55"></div>
+        <div class="r-book-spine" style="width:6px;height:85%;background:#3a2a18"></div>
+        <div class="r-book-spine" style="width:7px;height:65%;background:#253550"></div>
+        <div class="r-book-spine" style="width:5px;height:78%;background:#352a18"></div>
+        <div class="r-book-spine" style="width:8px;height:70%;background:#2a3048"></div>
+        <div class="r-book-spine" style="width:6px;height:80%;background:#3a1a10"></div>
+      </div>
+    </div>
+
+    <!-- Cabinet -->
+    <div class="r-cabinet">
+      <div class="r-cabinet-line" style="top:33%"></div>
+      <div class="r-cabinet-line" style="top:66%"></div>
+      <div class="r-cabinet-handle" style="top:20%"></div>
+      <div class="r-cabinet-handle" style="top:53%"></div>
+      <div class="r-cabinet-handle" style="top:80%"></div>
+      <div class="r-cabinet-label">AKTE</div>
+    </div>
+
+    <!-- Flashlight (transparent — room fully lit) -->
+    <div id="flashlight"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-left">
+        <div class="hud-op">▶ OPERATION: SCHWARZLICHT</div>
+        <div class="hud-agent">AGENT: <span id="hud-name">—</span></div>
+      </div>
+      <div class="hud-prog" id="pdots"></div>
+      <div class="hud-right">
+        <div class="hud-tlabel">VERBLEIBENDE ZEIT</div>
+        <div class="hud-timer" id="timer">30:00</div>
+      </div>
+    </div>
+
+    <!-- Clickable items -->
+    <div class="ritem unlocked" id="ri-letter" style="top:20%;left:48%" onclick="openPuzzle('letter')">
+      <div class="r-icon-wrap">✉️</div>
+      <div class="r-label">Geheimer Brief</div>
+    </div>
+    <div class="ritem locked" id="ri-note"     style="top:35%;left:14%" onclick="openPuzzle('note')">
+      <div class="r-icon-wrap">📄<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">Zettel</div>
+    </div>
+    <div class="ritem locked" id="ri-folder"   style="top:11%;right:15%" onclick="openPuzzle('folder')">
+      <div class="r-icon-wrap">📁<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">Blauer Ordner</div>
+    </div>
+    <div class="ritem locked" id="ri-box"      style="top:57%;left:6%" onclick="openPuzzle('box')">
+      <div class="r-icon-wrap">🗃️<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">Metallbox</div>
+    </div>
+    <div class="ritem locked" id="ri-map"      style="top:9%;left:27%" onclick="openPuzzle('map')">
+      <div class="r-icon-wrap">🗺️<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">Grundriss</div>
+    </div>
+    <div class="ritem locked" id="ri-suspects" style="top:53%;left:40%" onclick="openPuzzle('suspects')">
+      <div class="r-icon-wrap">👁️<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">Verdächtige</div>
+    </div>
+    <div class="ritem locked" id="ri-safe"     style="top:7%;right:3%" onclick="openPuzzle('safe')">
+      <div class="r-icon-wrap">🔐<span class="r-badge lock">🔒</span></div>
+      <div class="r-label">WANDSAFE</div>
+    </div>
+
+    <div class="room-hint-bar">GRÜN LEUCHTENDE OBJEKTE ANKLICKEN · RÄTSEL LÖSEN · DOPPELAGENTEN ENTTARNEN</div>
+  </div>
+</div>
+
+<!-- =========== MODAL =========== -->
+<div id="modal-overlay">
+  <div class="mbox">
+    <div class="mbox-header">
+      <div>
+        <div class="mbox-tag" id="m-tag">RÄTSEL</div>
+        <div class="mbox-title" id="m-title">TITEL</div>
+      </div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbox-body" id="m-body"></div>
+  </div>
+</div>
+
+<!-- =========== SCREEN 4: VICTORY =========== -->
+<div class="screen off" id="s-victory">
+  <div style="display:flex;flex-direction:column;align-items:center">
+    <div class="v-tag">✓ MISSION ERFÜLLT · OPERATION: SCHWARZLICHT</div>
+    <div class="v-title">AKTE GESICHERT</div>
+    <div class="v-sub">Der Doppelagent wurde enttarnt</div>
+    <div class="v-card">
+      <div style="font-size:9px;letter-spacing:3px;color:var(--dim2);margin-bottom:8px">WAHRER NAME — BESTÄTIGT</div>
+      <div class="v-name">NIKOLAI SEROV</div>
+      <div class="v-alias">ALIAS: NERO &nbsp;·&nbsp; CODENAME: SHADOW</div>
+      <div style="border-top:1px solid var(--border);margin:12px 0"></div>
+      <div class="v-verdict">✓ DOPPELAGENT BESTÄTIGT · VERHAFTUNG EINGELEITET</div>
+    </div>
+    <div class="v-story" id="v-story-msg"></div>
+    <div class="v-agent" id="v-agent-msg"></div>
+    <button class="replay-btn" onclick="location.reload()">↺ MISSION WIEDERHOLEN</button>
+  </div>
+</div>
+
+<!-- =========== SCREEN 5: GAME OVER =========== -->
+<div class="screen off" id="s-gameover">
+  <div style="display:flex;flex-direction:column;align-items:center">
+    <div style="font-size:9px;letter-spacing:4px;color:var(--red);margin-bottom:12px">✗ MISSION GESCHEITERT</div>
+    <div class="go-title">ZEIT ABGELAUFEN</div>
+    <div style="font-size:12px;color:var(--dim2);letter-spacing:3px;margin-bottom:24px">SHADOW ist entkommen. Die PHOENIX-Akte ist verloren.</div>
+    <div class="go-card">
+      Die 214 Undercover-Agenten weltweit sind in Gefahr.<br>
+      SHADOW hat das Land mit der PHOENIX-Akte verlassen.<br>
+      <span style="color:var(--text)">Der Doppelagent bleibt unerkannt.</span>
+    </div>
+    <div class="v-agent" id="go-agent-msg"></div>
+    <button class="replay-btn" onclick="location.reload()">↺ NOCHMAL VERSUCHEN</button>
+  </div>
+</div>
+
+<div id="notif"></div>
+
+<script>
+/* ==================== STATE ==================== */
+const state = {
+  agentName: '',
+  solved: { letter:false, note:false, folder:false, box:false, map:false, suspects:false, safe:false },
+  timerSec: 1800,   /* 30 Minuten */
+  timerInt: null
+};
+
+const UNLOCK_CHAIN = { note:null, folder:'note', box:'folder', map:'box', suspects:'map', safe:'suspects' };
+const ITEMS = ['note','folder','box','map','suspects','safe'];
+
+/* ==================== SCREEN ==================== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('off'));
+  document.getElementById(id).classList.remove('off');
+}
+
+/* ==================== TYPEWRITER ==================== */
+function typewriter(id, text, cb, speed) {
+  const el = document.getElementById(id);
+  el.textContent = ''; let i = 0;
+  const t = setInterval(() => {
+    el.textContent += text[i++];
+    if (i >= text.length) { clearInterval(t); if (cb) cb(); }
+  }, speed);
+}
+
+/* ==================== BEGIN MISSION ==================== */
+function beginMission() {
+  const inp  = document.getElementById('agent-name');
+  const name = inp.value.trim().toUpperCase() || 'UNBEKANNT';
+  state.agentName = name;
+  document.getElementById('brief-to').textContent = 'AGENT ' + name;
+  showScreen('s-briefing');
+
+  const msg =
+`Agent ${name},
+
+dies ist kein regulärer Einsatz.
+
+Vor drei Stunden wurde die PHOENIX-Akte aus dem
+gesicherten Archiv der Zentrale entwendet.
+Sie enthält die Klarnamen aller 214 Undercover-Agenten,
+die derzeit weltweit im Einsatz sind.
+
+Gerät diese Akte in falsche Hände, sind ihre Leben
+in unmittelbarer Gefahr.
+
+Unser Verdacht fällt auf einen Doppelagenten —
+intern nur als SHADOW bekannt. SHADOW war zuletzt
+in einem verlassenen Agentenbüro in Berlin-Mitte aktiv.
+Das Büro ist seit heute Nacht versiegelt.
+SHADOW wollte offenbar keine Spuren hinterlassen —
+und machte dabei dennoch Fehler.
+
+DEINE AUFGABE:
+Betritt das Büro. Folge den Hinweisen.
+Löse die Codes. Enttarne SHADOW.
+Sichere die PHOENIX-Akte, bevor es zu spät ist.
+
+Du hast 30 Minuten.
+Um 00:17 Uhr verlässt SHADOW das Land.
+
+Gib diesem Einsatz alles, Agent ${name}.
+Wir zählen auf dich.
+
+— Direktorin HARTMANN`;
+
+  typewriter('brief-text', msg, () => {
+    document.getElementById('brief-btn').style.display = 'block';
+  }, 16);
+}
+
+/* ==================== ENTER ROOM ==================== */
+function enterRoom() {
+  showScreen('s-room');
+  document.getElementById('hud-name').textContent = state.agentName || 'UNBEKANNT';
+  buildProgressDots();
+  unlockItem('note');
+  startTimer();
+}
+
+/* ==================== TIMER ==================== */
+function startTimer() {
+  const el = document.getElementById('timer');
+  state.timerInt = setInterval(() => {
+    state.timerSec--;
+    const m = Math.floor(state.timerSec / 60), s = state.timerSec % 60;
+    el.textContent = pad(m) + ':' + pad(s);
+    if (state.timerSec <= 300) el.classList.add('warn');
+    if (state.timerSec <= 0) {
+      clearInterval(state.timerInt);
+      el.textContent = '00:00';
+      setTimeout(gameOver, 800);
+    }
+  }, 1000);
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+
+/* ==================== PROGRESS DOTS ==================== */
+function buildProgressDots() {
+  const c = document.getElementById('pdots'); c.innerHTML = '';
+  ITEMS.forEach(id => {
+    const d = document.createElement('div');
+    d.className = 'pdot'; d.id = 'pd-' + id; d.title = id.toUpperCase();
+    c.appendChild(d);
+  });
+  document.getElementById('pd-note').classList.add('active');
+}
+
+/* ==================== UNLOCK / SOLVE ==================== */
+function unlockItem(id) {
+  const el = document.getElementById('ri-' + id); if (!el) return;
+  el.classList.remove('locked'); el.classList.add('unlocked', 'popin');
+  const badge = el.querySelector('.r-badge'); if (badge) badge.remove();
+  setTimeout(() => el.classList.remove('popin'), 500);
+  const d = document.getElementById('pd-' + id);
+  if (d) { d.classList.remove('done'); d.classList.add('active'); }
+}
+
+function markSolved(id) {
+  state.solved[id] = true;
+  const el = document.getElementById('ri-' + id); if (!el) return;
+  el.classList.remove('unlocked'); el.classList.add('solved');
+  const wrap = el.querySelector('.r-icon-wrap');
+  if (wrap && !wrap.querySelector('.r-badge')) {
+    const b = document.createElement('span');
+    b.className = 'r-badge check'; b.textContent = '✓'; wrap.appendChild(b);
+  }
+  const d = document.getElementById('pd-' + id);
+  if (d) { d.classList.remove('active'); d.classList.add('done'); }
+
+  const next = Object.keys(UNLOCK_CHAIN).find(k => UNLOCK_CHAIN[k] === id);
+  if (next) {
+    setTimeout(() => {
+      unlockItem(next);
+      const msgs = {
+        folder:   '📁 Blauer Ordner ist jetzt zugänglich!',
+        box:      '🗃️ Metallbox ist jetzt zugänglich!',
+        map:      '🗺️ Grundrissplan ist jetzt zugänglich!',
+        suspects: '👁️ Verdächtigenliste ist jetzt zugänglich!',
+        safe:     '🔐 WANDSAFE ist freigeschaltet — Code aus Rätsel 4!'
+      };
+      showNotif(msgs[next] || next + ' freigeschaltet!');
+    }, 700);
+  }
+  if (id === 'safe') setTimeout(victory, 1400);
+}
+
+/* ==================== NOTIFICATION ==================== */
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = '[ ' + msg + ' ]'; n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3400);
+}
+
+/* ==================== MODAL ==================== */
+function openPuzzle(id) {
+  const el = document.getElementById('ri-' + id);
+  if (!el || el.classList.contains('locked')) return;
+  const p = PUZZLES[id];
+  document.getElementById('m-tag').textContent   = p.tag;
+  document.getElementById('m-title').textContent = p.title;
+  document.getElementById('m-body').innerHTML    = p.html();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function solveAndClose(id) { markSolved(id); closeModal(); }
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ==================== HELPERS ==================== */
+function setFb(id, msg, ok) {
+  const e = document.getElementById('fb-' + id);
+  if (e) { e.textContent = msg; e.className = 'feedback ' + (ok ? 'ok' : 'err'); }
+}
+function showRes(id)  { const e = document.getElementById('res-' + id); if (e) e.classList.add('show'); }
+function setIS(iid, st) {
+  const e = document.getElementById(iid); if (!e) return;
+  e.classList.remove('ok','err'); if (st) e.classList.add(st);
+  if (st === 'err') setTimeout(() => e.classList.remove('err'), 500);
+}
+function gv(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+/* ==================== TIP SYSTEM ==================== */
+function makeTips(id, easy, med, hard) {
+  return `<div class="tip-section">
+  <div class="tip-btn-row">
+    <span style="font-size:9px;letter-spacing:2px;color:var(--dim2);align-self:center;">💡 TIPPS:</span>
+    <button class="tip-btn easy" onclick="showTip('${id}','easy')">🟢 LEICHT</button>
+    <button class="tip-btn med"  onclick="showTip('${id}','med')">🟡 MITTEL</button>
+    <button class="tip-btn hard" onclick="showTip('${id}','hard')">🔴 STARK</button>
+  </div>
+  <div class="tip-box easy-tip" id="tip-${id}-easy">
+    <div class="tip-label easy-tip">TIPP — LEICHT</div>${easy}
+  </div>
+  <div class="tip-box med-tip" id="tip-${id}-med">
+    <div class="tip-label med-tip">TIPP — MITTEL</div>${med}
+  </div>
+  <div class="tip-box hard-tip" id="tip-${id}-hard">
+    <div class="tip-label hard-tip">TIPP — STARK (fast die Lösung!)</div>${hard}
+  </div>
+</div>`;
+}
+
+function showTip(id, level) {
+  const levels = ['easy','med','hard'];
+  levels.forEach(l => {
+    const el = document.getElementById('tip-' + id + '-' + l);
+    if (el) {
+      if (l === level) {
+        el.classList.toggle('show');
+      } else {
+        el.classList.remove('show');
+      }
+    }
+  });
+}
+
+/* ==================== PUZZLES ==================== */
+const PUZZLES = {
+
+  /* ---- BRIEF — JEDERZEIT LESBAR ---- */
+  letter: {
+    tag:   'GEFUNDENES DOKUMENT — STRENG GEHEIM',
+    title: 'DER GEHEIMNISVOLLE BRIEF',
+    html: () => `
+<div class="storybox">
+Auf dem Schreibtisch, halb unter einem Aktenstapel versteckt, liegt ein zerknitterter Umschlag.
+Kein Absender. Keine Adresse. Nur ein Wort auf der Vorderseite: <strong>„FALLS ICH NICHT ZURÜCKKOMME."</strong><br>
+Du öffnest ihn.
+</div>
+<div class="docbox" style="background:rgba(230,210,160,.04);border-color:rgba(200,180,120,.2);">
+  <div class="docbox-label" style="color:var(--gold)">HANDGESCHRIEBENER BRIEF — ORIGINAL</div>
+  <div style="font-family:Georgia,serif;font-size:13px;line-height:2.2;color:#c8b88a;padding:8px 4px;white-space:pre-wrap;">Berlin, 3. Mai 2026
+
+Wenn du diesen Brief liest, ist es zu spät — für mich.
+
+Ich war nicht immer das, was sie aus mir gemacht haben.
+Ich hatte eine Wahl. Ich habe die falsche getroffen.
+
+Die Akte liegt dort, wo niemand sucht:
+hinter dem Stadtplan, hinter der Zahl, hinter der Wahrheit.
+
+Vertrau den Zahlen. Vertrau dem Muster.
+Das Muster lügt nie — Menschen schon.
+
+Ich weiß, dass sie kommen werden.
+Ich weiß, dass jemand wie du diese Zeilen lesen wird.
+
+Dann tue, was ich nicht getan habe:
+das Richtige.
+
+— N.</div>
+</div>
+<div style="margin-top:14px;padding:12px 14px;background:rgba(196,32,32,.06);border-left:2px solid var(--red);font-size:11px;color:var(--dim2);line-height:1.9;">
+  <span style="color:var(--red);letter-spacing:2px;font-size:9px;">ANALYSE-HINWEIS:</span><br>
+  „N." — könnte das ein Deckname sein? NERO? Der Autor des Briefs scheint Reue zu empfinden.<br>
+  <em>„hinter dem Stadtplan"</em> — das klingt wie ein Versteck. Merke dir das für später.
+</div>
+<div style="margin-top:16px;text-align:center;font-size:10px;color:var(--dim2);letter-spacing:2px;">
+  Dieser Brief ist kein Rätsel — er ist ein Hinweis.<br>
+  <span style="color:var(--gold)">Löse die anderen Rätsel, um die ganze Wahrheit zu entdecken.</span>
+</div>`
+  },
+
+  /* ---- RÄTSEL 1: DREI ZAHLENFOLGEN ---- */
+  note: {
+    tag:   'RÄTSEL 1 VON 5 — MATHEMATIK / LOGIK',
+    title: 'DER GEHEIME ZETTEL — ZAHLENFOLGEN',
+    html: () => `
+<div class="storybox">
+Auf dem Schreibtisch liegt ein zerknitterter Zettel, vollgeschrieben mit Zahlenreihen.
+Darunter steht: <strong>„Nur wer das Muster erkennt, findet den Weg."</strong><br>
+SHADOW hat drei Codes versteckt. Finde jeweils die nächste Zahl — alle drei zusammen öffnen den Hinweis.
+</div>
+
+<div class="docbox">
+  <div class="docbox-label">FOLGE A — LEICHT</div>
+  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:16px 0 10px;">
+    ${['2','6','10','14','18','?'].map((n,i) => `
+    <div style="text-align:center;">
+      <div style="font-family:Georgia,serif;font-size:32px;font-weight:bold;color:${n==='?'?'var(--red)':'#e8dfc8'};background:${n==='?'?'rgba(196,32,32,.12)':'rgba(0,0,0,.35)'};border:${n==='?'?'2px solid var(--red)':'1px solid var(--border)'};padding:10px 18px;min-width:58px;">${n}</div>
+    </div>${i<5?'<div style="font-size:24px;color:var(--dim2);padding-top:8px;">→</div>':''}`).join('')}
+  </div>
+  <div class="irow" style="margin-top:4px;">
+    <span class="ilb" style="font-size:11px;">A =</span>
+    <input class="px-input sm" id="i-na" type="number" placeholder="?">
+  </div>
+  ${makeTips('na', '💡 Schau, wie viel von Zahl zu Zahl dazukommt. Immer gleich?', '💡 2, 6, 10, 14, 18 — der Abstand zwischen je zwei Zahlen ist immer gleich: +4.', '💡 18 + 4 = 22 → Antwort: 22')}
+</div>
+
+<div class="docbox" style="margin-top:14px;">
+  <div class="docbox-label">FOLGE B — MITTEL</div>
+  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:16px 0 10px;">
+    ${['3','15','11','55','51','?'].map((n,i) => `
+    <div style="text-align:center;">
+      <div style="font-family:Georgia,serif;font-size:32px;font-weight:bold;color:${n==='?'?'var(--red)':'#e8dfc8'};background:${n==='?'?'rgba(196,32,32,.12)':'rgba(0,0,0,.35)'};border:${n==='?'?'2px solid var(--red)':'1px solid var(--border)'};padding:10px 18px;min-width:58px;">${n}</div>
+    </div>${i<5?'<div style="font-size:24px;color:var(--dim2);padding-top:8px;">→</div>':''}`).join('')}
+  </div>
+  <div class="irow" style="margin-top:4px;">
+    <span class="ilb" style="font-size:11px;">B =</span>
+    <input class="px-input sm" id="i-nb" type="number" placeholder="?">
+  </div>
+  ${makeTips('nb', '💡 Hier wechselt die Rechenoperation jedes Mal ab — mal ist es Mal, mal ist es Minus.', '💡 Das Muster wechselt sich ab: ×5, dann −4, ×5, dann −4 ... Was kommt nach −4?', '💡 51 × 5 = 255 → Antwort: 255')}
+</div>
+
+<div class="docbox" style="margin-top:14px;">
+  <div class="docbox-label">FOLGE C — SCHWER</div>
+  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:16px 0 10px;">
+    ${['1','2','4','7','11','16','?'].map((n,i) => `
+    <div style="text-align:center;">
+      <div style="font-family:Georgia,serif;font-size:32px;font-weight:bold;color:${n==='?'?'var(--red)':'#e8dfc8'};background:${n==='?'?'rgba(196,32,32,.12)':'rgba(0,0,0,.35)'};border:${n==='?'?'2px solid var(--red)':'1px solid var(--border)'};padding:10px 18px;min-width:58px;">${n}</div>
+    </div>${i<6?'<div style="font-size:24px;color:var(--dim2);padding-top:8px;">→</div>':''}`).join('')}
+  </div>
+  <div class="irow" style="margin-top:4px;">
+    <span class="ilb" style="font-size:11px;">C =</span>
+    <input class="px-input sm" id="i-nc" type="number" placeholder="?">
+  </div>
+  ${makeTips('nc', '💡 Schau wie viel jedes Mal dazukommt: ist der Abstand selbst jedes Mal gleich, oder verändert er sich?', '💡 Die Abstände sind: +1, +2, +3, +4, +5 — sie wachsen selbst um 1.', '💡 16 + 6 = 22 → Antwort: 22')}
+</div>
+
+<button class="px-btn" style="margin-top:14px;" onclick="chkNote()">▶ ALLE DREI PRÜFEN</button>
+<div class="feedback" id="fb-note"></div>
+<div class="res-box" id="res-note">
+  <div class="res-label">✓ ALLE MUSTER ERKANNT — CODE ENTSCHLÜSSELT</div>
+  <div class="res-code" style="font-size:20px;letter-spacing:4px;">A=22 · B=255 · C=22</div>
+  <div class="res-sub">Nächster Schritt: Blauen Ordner im Regal öffnen</div>
+  <button class="next-btn" onclick="solveAndClose('note')">▶ WEITER ZUM BLAUEN ORDNER</button>
+</div>`
+  },
+
+  /* ---- RÄTSEL 2: GLEICHUNGEN ---- */
+  folder: {
+    tag:   'RÄTSEL 2 VON 5 — MATHEMATIK / GLEICHUNGEN',
+    title: 'DER BLAUE ORDNER — ZUGANGSCODE',
+    html: () => `
+<div class="storybox">
+Im blauen Ordner findest du ein getipptes Blatt mit dem Titel:
+<strong>„ZUGANGSPROTOKOLL ALPHA"</strong>.<br>
+Jemand hat den Code zur Metallbox hinter drei Gleichungen versteckt.
+Die drei Lösungen — in Reihenfolge — öffnen das Schloss.
+</div>
+<div class="docbox"><div class="docbox-label">ZUGANGSPROTOKOLL ALPHA — GLEICHUNGEN LÖSEN</div>
+  <div class="eq-row">
+    <span class="eq-lbl">(a)</span>
+    <span class="eq-formula">3x &minus; 5 = 13</span>
+    <span class="eq-hint">x = ? &nbsp;→&nbsp; Ziffer 1</span>
+  </div>
+  <div class="eq-row">
+    <span class="eq-lbl">(b)</span>
+    <span class="eq-formula">y &divide; 2 + 3 = 7</span>
+    <span class="eq-hint">y = ? &nbsp;→&nbsp; Ziffer 2</span>
+  </div>
+  <div class="eq-row">
+    <span class="eq-lbl">(c)</span>
+    <span class="eq-formula">2z + 7 = 15</span>
+    <span class="eq-hint">z = ? &nbsp;→&nbsp; Ziffer 3</span>
+  </div>
+  <div class="hint-tip">Tipp: Auf beiden Seiten die gleiche Operation durchführen (Äquivalenzumformung)</div>
+</div>
+${makeTips('folder', '💡 Bei (a): Du musst x alleine lassen. Addiere zuerst 5 auf beiden Seiten.', '💡 (a) 3x = 18 → x = 6 &nbsp;·&nbsp; (b) y/2 = 4 → y = ? &nbsp;·&nbsp; (c) 2z = 8 → z = ?', '💡 Lösungen: x = 6, y = 8, z = 4 → Code: 684')}
+<div class="plabel">LÖSUNGEN EINGEBEN:</div>
+<div class="irow">
+  <span class="ilb">x =</span><input class="px-input sm" id="i-x" type="number" placeholder="?">
+  <span class="ilb" style="margin-left:10px">y =</span><input class="px-input sm" id="i-y" type="number" placeholder="?">
+  <span class="ilb" style="margin-left:10px">z =</span><input class="px-input sm" id="i-z" type="number" placeholder="?">
+</div>
+<button class="px-btn" onclick="chkFolder()">▶ CODE ERMITTELN</button>
+<div class="feedback" id="fb-folder"></div>
+<div class="res-box" id="res-folder">
+  <div class="res-label">✓ KOMBINATIONSCODE BERECHNET</div>
+  <div class="res-code">6 — 8 — 4</div>
+  <div class="res-sub">Dieser Code öffnet das Schloss der Metallbox</div>
+  <button class="next-btn" onclick="solveAndClose('folder')">▶ WEITER ZUR METALLBOX</button>
+</div>`
+  },
+
+  /* ---- RÄTSEL 3: PROZENTRECHNUNG ---- */
+  box: {
+    tag:   'RÄTSEL 3 VON 5 — MATHEMATIK / PROZENTRECHNUNG',
+    title: 'DIE METALLBOX — GEHEIMES DOSSIER',
+    html: () => `
+<div class="storybox">
+Die Metallbox ist offen. Darin liegt ein klassifiziertes Dossier:
+<strong>„DOSSIER NERO — STRENG GEHEIM"</strong>.<br>
+Eine handgeschriebene Notiz klebt innen: <em>„Die vier Ergebnisse ergeben — in dieser Reihenfolge — den PIN."</em><br>
+Du brauchst den PIN, um den versiegelten Umschlag im Dossier zu öffnen.
+</div>
+<div class="docbox"><div class="docbox-label">BEOBACHTUNGSPROTOKOLL — AUSZUG</div>
+  <div class="pct-grid">
+    <div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div class="plabel">[1] SHADOW war an <strong>20%</strong> von <strong>10</strong> Nächten am Treffpunkt.</div>
+      <div style="font-size:12px;margin-top:3px">Wie viele Nächte? → Ziffer 1</div>
+    </div>
+    <div style="display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);padding:9px 0">
+      <input class="px-input sm" id="i-p1" type="number" placeholder="?">
+    </div>
+    <div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div class="plabel">[2] <strong>15%</strong> von <strong>20</strong> Personen wurden als verdächtig markiert.</div>
+      <div style="font-size:12px;margin-top:3px">Wie viele? → Ziffer 2</div>
+    </div>
+    <div style="display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);padding:9px 0">
+      <input class="px-input sm" id="i-p2" type="number" placeholder="?">
+    </div>
+    <div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div class="plabel">[3] <strong>70%</strong> von <strong>10</strong> Akten wurden analysiert.</div>
+      <div style="font-size:12px;margin-top:3px">Wie viele? → Ziffer 3</div>
+    </div>
+    <div style="display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);padding:9px 0">
+      <input class="px-input sm" id="i-p3" type="number" placeholder="?">
+    </div>
+    <div style="padding:9px 0">
+      <div class="plabel">[4] <strong>25%</strong> von <strong>20</strong> Hinweisen wurden bestätigt.</div>
+      <div style="font-size:12px;margin-top:3px">Wie viele? → Ziffer 4</div>
+    </div>
+    <div style="display:flex;align-items:center;padding:9px 0">
+      <input class="px-input sm" id="i-p4" type="number" placeholder="?">
+    </div>
+  </div>
+  <div class="hint-tip">Formel: Prozentwert = (Prozentsatz ÷ 100) × Grundwert</div>
+</div>
+${makeTips('box', '💡 Beispiel: 20% von 10 = (20 ÷ 100) × 10. Rechne das für alle vier Aufgaben.', '💡 [1] 0,20 × 10 = 2 &nbsp;·&nbsp; [2] 0,15 × 20 = 3 &nbsp;·&nbsp; Rechne [3] und [4] selbst.', '💡 Alle vier Ergebnisse: 2 · 3 · 7 · 5 → PIN: 2375')}
+<button class="px-btn" onclick="chkBox()">▶ PIN BERECHNEN</button>
+<div class="feedback" id="fb-box"></div>
+<div class="res-box" id="res-box">
+  <div class="res-label">✓ PIN ERMITTELT — UMSCHLAG GEÖFFNET</div>
+  <div class="res-code">2 — 3 — 7 — 5</div>
+  <div class="res-sub">Im Umschlag befindet sich eine Kopie des Gebäudegrundriss</div>
+  <button class="next-btn" onclick="solveAndClose('box')">▶ WEITER ZUM GRUNDRISSPLAN</button>
+</div>`
+  },
+
+  /* ---- RÄTSEL 4: GEOMETRIE ---- */
+  map: {
+    tag:   'RÄTSEL 4 VON 5 — MATHEMATIK / GEOMETRIE',
+    title: 'DER GRUNDRISSPLAN — SAFE-CODE',
+    html: () => `
+<div class="storybox">
+Im Umschlag liegt eine Grundrisskopie dieses Gebäudes — mit drei markierten Räumen.
+Jeder Raum hat eine geometrische Besonderheit. Am Rand steht handschriftlich:
+<strong>„Safe-Code = [Grün][Rot][Blau]"</strong>.<br>
+Berechne den gesuchten Wert für jeden Raum — das ergibt die drei Ziffern.
+</div>
+<div class="docbox"><div class="docbox-label">GRUNDRISSKOPIE — DREI MARKIERTE RÄUME</div>
+  <div class="geo-grid">
+    <div class="geo-card">
+      <div class="geo-title" style="color:#4caf50">● GRÜNER RAUM</div>
+      <div class="geo-shape">┌──────┐
+│      │
+└──────┘</div>
+      <div class="geo-info">Form: Quadrat · Seite a = 2 m</div>
+      <div class="geo-q">Gesucht: Umfang U = ?</div>
+      <div class="hint-tip">U = 4 × a</div>
+      <div class="irow" style="margin-top:8px">
+        <span class="ilb">U =</span>
+        <input class="px-input sm" id="i-g1" type="number" placeholder="?">
+      </div>
+    </div>
+    <div class="geo-card">
+      <div class="geo-title" style="color:#f44336">● ROTER RAUM</div>
+      <div class="geo-shape">┌──────────┐
+│          │
+└──────────┘</div>
+      <div class="geo-info">Form: Rechteck · l = 3 m, b = 2 m</div>
+      <div class="geo-q">Gesucht: Fläche A = ?</div>
+      <div class="hint-tip">A = l × b</div>
+      <div class="irow" style="margin-top:8px">
+        <span class="ilb">A =</span>
+        <input class="px-input sm" id="i-g2" type="number" placeholder="?">
+      </div>
+    </div>
+    <div class="geo-card">
+      <div class="geo-title" style="color:#42a5f5">● BLAUER RAUM</div>
+      <div class="geo-shape">   /\
+  /  \
+ /____\</div>
+      <div class="geo-info">Form: Dreieck · g = 4 m, h = 2 m</div>
+      <div class="geo-q">Gesucht: Fläche A = ?</div>
+      <div class="hint-tip">A = (g × h) ÷ 2</div>
+      <div class="irow" style="margin-top:8px">
+        <span class="ilb">A =</span>
+        <input class="px-input sm" id="i-g3" type="number" placeholder="?">
+      </div>
+    </div>
+  </div>
+</div>
+${makeTips('map', '💡 Grüner Raum: Quadrat mit Seite 2 m. Umfang = alle 4 Seiten addieren.', '💡 Grün: 4×2=8 &nbsp;·&nbsp; Rot: Fläche = Länge × Breite = 3×2 &nbsp;·&nbsp; Blau: (g×h)÷2 = (4×2)÷2', '💡 Alle drei Werte: 8, 6, 4 → Safe-Code: 864')}
+<button class="px-btn" onclick="chkMap()">▶ SAFE-CODE BERECHNEN</button>
+<div class="feedback" id="fb-map"></div>
+<div class="res-box" id="res-map">
+  <div class="res-label">✓ SAFE-CODE ERMITTELT — DIESEN CODE MERKEN!</div>
+  <div class="res-code">8 — 6 — 4</div>
+  <div class="res-sub">WANDSAFE-CODE: 864 &nbsp;·&nbsp; Hinter dem Stadtplan an der Wand</div>
+  <button class="next-btn" onclick="solveAndClose('map')">▶ WEITER: DOPPELAGENTEN IDENTIFIZIEREN</button>
+</div>`
+  },
+
+  /* ---- RÄTSEL 5: STOCHASTIK ---- */
+  suspects: {
+    tag:   'RÄTSEL 5 VON 5 — MATHEMATIK / STOCHASTIK',
+    title: 'DIE VERDÄCHTIGENLISTE — WER IST SHADOW?',
+    html: () => `
+<div class="storybox">
+Im Dossier liegt außerdem ein Beobachtungsprotokoll. Vier Agenten hatten Zugang zur PHOENIX-Akte.
+Alle vier wurden über <strong>20 Tage</strong> beobachtet.<br>
+SHADOW war an <strong>mehr als 50 %</strong> der Tage am geheimen Treffpunkt NOVEMBER aktiv.
+Berechne die relativen Häufigkeiten — und überführe SHADOW.
+</div>
+<div class="docbox"><div class="docbox-label">OBSERVATIONSPROTOKOLL — TREFFPUNKT NOVEMBER (20 Tage)</div>
+  <table class="stbl">
+    <tr>
+      <th>AGENT</th>
+      <th>GESEHEN (von 20)</th>
+      <th>REL. HÄUFIGKEIT</th>
+      <th>BEWERTUNG</th>
+    </tr>
+    <tr>
+      <td>ALBA</td>
+      <td style="text-align:center">6</td>
+      <td><input class="sinput" id="sh-alba"  type="number" placeholder="?"> %</td>
+      <td id="st-alba"  style="font-size:10px;color:var(--dim2)">—</td>
+    </tr>
+    <tr>
+      <td><strong>NERO</strong></td>
+      <td style="text-align:center">14</td>
+      <td><input class="sinput" id="sh-nero"  type="number" placeholder="?"> %</td>
+      <td id="st-nero"  style="font-size:10px;color:var(--dim2)">—</td>
+    </tr>
+    <tr>
+      <td>SILVA</td>
+      <td style="text-align:center">9</td>
+      <td><input class="sinput" id="sh-silva" type="number" placeholder="?"> %</td>
+      <td id="st-silva" style="font-size:10px;color:var(--dim2)">—</td>
+    </tr>
+    <tr>
+      <td>VANCE</td>
+      <td style="text-align:center">3</td>
+      <td><input class="sinput" id="sh-vance" type="number" placeholder="?"> %</td>
+      <td id="st-vance" style="font-size:10px;color:var(--dim2)">—</td>
+    </tr>
+  </table>
+  <div class="hint-tip">Formel: relative Häufigkeit (%) = (Anzahl ÷ 20) × 100 &nbsp;·&nbsp; Grenzwert: &gt; 50 %</div>
+</div>
+${makeTips('suspects', '💡 Beispiel für ALBA: (6 ÷ 20) × 100 = 30%. Rechne das für alle vier Agenten.', '💡 ALBA: 30% &nbsp;·&nbsp; NERO: (14÷20)×100 = ? &nbsp;·&nbsp; SILVA: 45% &nbsp;·&nbsp; VANCE: 15%', '💡 NERO hat 70% — als einziger über 50%. SHADOW = NERO.')}
+<button class="px-btn" onclick="chkStatCalc()">▶ HÄUFIGKEITEN PRÜFEN</button>
+<div class="feedback" id="fb-sc"></div>
+<div id="suspect-pick" style="display:none;margin-top:16px">
+  <div class="plabel">WER IST SHADOW? — VERDÄCHTIGEN AUSWÄHLEN:</div>
+  <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+    <button class="suspect-btn" onclick="pickSuspect('ALBA',this)">ALBA</button>
+    <button class="suspect-btn" onclick="pickSuspect('NERO',this)">NERO</button>
+    <button class="suspect-btn" onclick="pickSuspect('SILVA',this)">SILVA</button>
+    <button class="suspect-btn" onclick="pickSuspect('VANCE',this)">VANCE</button>
+  </div>
+  <div class="feedback" id="fb-sp"></div>
+</div>
+<div class="res-box" id="res-suspects">
+  <div class="res-label">✓ DOPPELAGENT IDENTIFIZIERT</div>
+  <div class="res-code" style="color:var(--red)">NERO</div>
+  <div class="res-sub">
+    70 % rel. Häufigkeit · einziger Agent über 50 % · SHADOW = NERO<br>
+    Safe-Code aus Rätsel 4: <strong style="color:var(--gold)">864</strong>
+  </div>
+  <button class="next-btn" onclick="solveAndClose('suspects')">▶ WEITER: WANDSAFE ÖFFNEN</button>
+</div>`
+  },
+
+  /* ---- FINALE: SAFE ---- */
+  safe: {
+    tag:   'FINALE — MISSION ENTSCHEIDEND',
+    title: 'DER WANDSAFE — PHOENIX-AKTE',
+    html: () => `
+<div class="storybox">
+Hinter einem alten Berliner Stadtplan an der Wand versteckt sich der Wandsafe.
+Du weißt jetzt alles:<br>
+<strong>NERO ist SHADOW.</strong> Der Safe-Code stammt aus Rätsel 4 — der Geometrie.<br>
+Ein letzter Schritt trennt dich von der PHOENIX-Akte.
+</div>
+<div class="safe-door">🔐</div>
+<div class="docbox"><div class="docbox-label">CODE-EINGABE — WANDSAFE</div>
+  <div class="plabel">DREISTELLIGER SAFE-CODE (aus Rätsel 4):</div>
+  <input class="px-input safe-input" id="i-safe" type="number" placeholder="_ _ _"
+    onkeydown="if(event.key==='Enter')chkSafe()">
+  <div class="hint-tip">Tipp: [Umfang Quadrat] [Fläche Rechteck] [Fläche Dreieck] &nbsp;·&nbsp; Rätsel 4 nochmals öffnen, falls nötig</div>
+</div>
+${makeTips('safe', '💡 Der Code wurde in Rätsel 4 (Geometrie) berechnet. Öffne es nochmal!', '💡 Es sind drei Ziffern: Grüner Raum, Roter Raum, Blauer Raum — in dieser Reihenfolge.', '💡 Der Safe-Code lautet: 864')}
+<button class="px-btn" onclick="chkSafe()">▶ SAFE ÖFFNEN</button>
+<div class="feedback" id="fb-safe"></div>`
+  }
+};
+
+/* ==================== CHECK FUNCTIONS ==================== */
+
+function chkNote() {
+  const a = parseInt(gv('i-na')), b = parseInt(gv('i-nb')), c = parseInt(gv('i-nc'));
+  const okA = a === 22, okB = b === 255, okC = c === 22;
+  if (okA && okB && okC) {
+    setFb('note','✓ Alle drei korrekt! A=22, B=255, C=22', true);
+    showRes('note');
+  } else {
+    const wrong = [];
+    if (!okA) wrong.push('A falsch');
+    if (!okB) wrong.push('B falsch');
+    if (!okC) wrong.push('C falsch');
+    setFb('note','✗ Noch nicht ganz: ' + wrong.join(', ') + '. Nutze die Tipps!', false);
+  }
+}
+
+function chkFolder() {
+  const x = parseInt(gv('i-x')), y = parseInt(gv('i-y')), z = parseInt(gv('i-z'));
+  if (x===6 && y===8 && z===4) {
+    setFb('folder','✓ Korrekt! Code 684 ermittelt.', true);
+    showRes('folder');
+  } else {
+    const hints = [];
+    if (x!==6) hints.push('x: 3x = 13+5 = 18 → x = ?');
+    if (y!==8) hints.push('y: y/2 = 7−3 = 4 → y = ?');
+    if (z!==4) hints.push('z: 2z = 15−7 = 8 → z = ?');
+    setFb('folder','✗ Nicht ganz. ' + hints.join(' | '), false);
+  }
+}
+
+function chkBox() {
+  const p1=parseInt(gv('i-p1')), p2=parseInt(gv('i-p2'));
+  const p3=parseInt(gv('i-p3')), p4=parseInt(gv('i-p4'));
+  if (p1===2 && p2===3 && p3===7 && p4===5) {
+    setFb('box','✓ Korrekt! PIN 2375 berechnet.', true);
+    showRes('box');
+  } else {
+    const hints = [];
+    if (p1!==2) hints.push('[1] 20%×10=2');
+    if (p2!==3) hints.push('[2] 15%×20=3');
+    if (p3!==7) hints.push('[3] 70%×10=7');
+    if (p4!==5) hints.push('[4] 25%×20=5');
+    setFb('box','✗ ' + hints.join(' | ') + ' — Formel: (p÷100)×Grundwert', false);
+  }
+}
+
+function chkMap() {
+  const g1=parseInt(gv('i-g1')), g2=parseInt(gv('i-g2')), g3=parseInt(gv('i-g3'));
+  if (g1===8 && g2===6 && g3===4) {
+    setFb('map','✓ Korrekt! Safe-Code 864 — diesen Code unbedingt merken!', true);
+    showRes('map');
+  } else {
+    const hints = [];
+    if (g1!==8) hints.push('Grün: 4×2=8');
+    if (g2!==6) hints.push('Rot: 3×2=6');
+    if (g3!==4) hints.push('Blau: (4×2)÷2=4');
+    setFb('map','✗ ' + hints.join(' | '), false);
+  }
+}
+
+function chkStatCalc() {
+  const correct = { alba:30, nero:70, silva:45, vance:15 };
+  const inputs  = { alba:'sh-alba', nero:'sh-nero', silva:'sh-silva', vance:'sh-vance' };
+  const status  = { alba:'st-alba', nero:'st-nero', silva:'st-silva', vance:'st-vance' };
+  let ok = true;
+  for (const [a, v] of Object.entries(correct)) {
+    const entered = parseInt(gv(inputs[a]));
+    const stEl = document.getElementById(status[a]);
+    if (entered === v) {
+      if (stEl) {
+        stEl.textContent = v > 50 ? '⚠ VERDÄCHTIG' : '✓ unauffällig';
+        stEl.style.color = v > 50 ? 'var(--red)' : 'var(--green2)';
+      }
+    } else {
+      ok = false;
+      if (stEl) { stEl.textContent = '← prüfen'; stEl.style.color = 'var(--dim2)'; }
+    }
+  }
+  if (ok) {
+    setFb('sc','✓ Alle Häufigkeiten korrekt! Wähle jetzt den Verdächtigen aus.', true);
+    document.getElementById('suspect-pick').style.display = 'block';
+  } else {
+    setFb('sc','✗ Noch nicht alle Werte stimmen. Formel: (Anzahl ÷ 20) × 100', false);
+  }
+}
+
+function pickSuspect(name, btn) {
+  document.querySelectorAll('.suspect-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if (name === 'NERO') {
+    setFb('sp','✓ Korrekt! NERO: 70% — der einzige Agent über 50%. SHADOW = NERO!', true);
+    setTimeout(() => showRes('suspects'), 900);
+  } else {
+    setFb('sp','✗ ' + name + ' überschreitet die 50%-Grenze nicht. Wer hat die höchste relative Häufigkeit?', false);
+  }
+}
+
+function chkSafe() {
+  const v = gv('i-safe');
+  if (v === '864') {
+    setIS('i-safe','ok');
+    setFb('safe','✓ Code korrekt! Der Safe öffnet sich ...', true);
+    setTimeout(() => solveAndClose('safe'), 1400);
+  } else {
+    setIS('i-safe','err');
+    setFb('safe','✗ Falscher Code. Rätsel 4 (Geometrie) nochmals überprüfen!', false);
+  }
+}
+
+/* ==================== VICTORY ==================== */
+function victory() {
+  clearInterval(state.timerInt);
+  showScreen('s-victory');
+  const elapsed = 1800 - state.timerSec;
+  const m = Math.floor(elapsed/60), s = elapsed % 60;
+
+  document.getElementById('v-story-msg').innerHTML =
+    `Im Wandsafe liegt die PHOENIX-Akte — vollständig, unversehrt.<br>
+     NERO alias Nikolai Serov hat das Land nicht rechtzeitig verlassen.<br>
+     Die Verhaftung ist eingeleitet. Alle 214 Agenten sind in Sicherheit.`;
+
+  document.getElementById('v-agent-msg').innerHTML =
+    `Agent <strong style="color:var(--green)">${state.agentName}</strong> hat die Mission in
+    <strong style="color:var(--gold)">${pad(m)}:${pad(s)}</strong> Minuten erfolgreich abgeschlossen.`;
+
+  fireConfetti();
+}
+
+/* ==================== GAME OVER ==================== */
+function gameOver() {
+  clearInterval(state.timerInt);
+  showScreen('s-gameover');
+  const solved = Object.values(state.solved).filter(Boolean).length;
+  document.getElementById('go-agent-msg').innerHTML =
+    `Agent <strong style="color:var(--red)">${state.agentName}</strong>: ${solved} von 5 Rätseln gelöst.<br>
+    SHADOW ist verschwunden — die PHOENIX-Akte bleibt verschollen.`;
+}
+
+/* ==================== CONFETTI ==================== */
+function fireConfetti() {
+  const colors = ['#f5c842','#c42020','#00e676','#ffffff','#5599ff','#ff66aa'];
+  for (let i = 0; i < 90; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div'); c.className = 'conf';
+      c.style.cssText =
+        `left:${Math.random()*100}vw;` +
+        `background:${colors[Math.floor(Math.random()*colors.length)]};` +
+        `animation-duration:${1.8+Math.random()*2.2}s;` +
+        `animation-delay:${Math.random()*.6}s;` +
+        `width:${5+Math.random()*5}px;` +
+        `height:${10+Math.random()*8}px;` +
+        `border-radius:${Math.random()>.5?'50%':'2px'}`;
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4500);
+    }, i * 70);
+  }
+}
+</script>
+</body>
+</html>
